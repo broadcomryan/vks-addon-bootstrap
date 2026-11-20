@@ -1,0 +1,20 @@
+# OVERLAY: this cluster's add-ons, built from the shared bases in addons/.
+# It changes only what is specific to this cluster:
+#   1. names        -> <cluster>-cert-manager, <cluster>-contour       (namePrefix)
+#   2. the target   -> this cluster                                    (patch: target-cluster)
+#   3. Contour's IP -> a static load-balancer IP                       (patch: contour-static-ip.yaml)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namePrefix: wrkld-system-1-poc-1-
+resources:
+- ../../../../addons/cert-manager
+- ../../../../addons/contour
+patches:
+- path: contour-static-ip.yaml
+- target:
+    kind: AddonInstall
+  patch: |-
+    - op: replace
+      path: /spec/clusters/0/selector/matchLabels
+      value:
+        cluster.x-k8s.io/cluster-name: wrkld-system-1-poc-1

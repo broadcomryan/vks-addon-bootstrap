@@ -1,0 +1,5 @@
+# BASE: cert-manager, required by Contour. Cluster name and namespace are set by each cluster's overlay.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- addoninstall.yaml

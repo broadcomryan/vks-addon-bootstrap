@@ -1,0 +1,71 @@
+# Everything Argo CD may do in vSphere Namespace system-1-ns-poc-1. Applied by hand, on purpose:
+# Argo CD can never grant itself a namespace. New namespace: copy this file, replace the name.
+
+# 1. Create and change Clusters there (same rights as Namespaces Edit)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-k8s-sa-edit
+  namespace: system-1-ns-poc-1
+subjects:
+- kind: ServiceAccount
+  name: argocd-k8s-sa
+  namespace: system-1-argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+---
+# 2. Create VKS add-on objects there (in case "edit" doesn't include them)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argocd-vks-addons
+  namespace: system-1-ns-poc-1
+rules:
+- apiGroups: ["addons.kubernetes.vmware.com"]
+  resources: ["addoninstalls", "addonconfigs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-k8s-sa-vks-addons
+  namespace: system-1-ns-poc-1
+subjects:
+- kind: ServiceAccount
+  name: argocd-k8s-sa
+  namespace: system-1-argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argocd-vks-addons
+---
+# 3. Read the clusters' logins, so guest clusters can be registered (setup/guest-clusters/).
+#    Role installed by the Argo CD Service. If it's "not found", delete this binding; "edit" covers it.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-k8s-sa-vks
+  namespace: system-1-ns-poc-1
+subjects:
+- kind: ServiceAccount
+  name: argocd-k8s-sa
+  namespace: system-1-argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-manage-vks
+---
+# 4. Register the namespace as an Argo CD destination for the vks-clusters project
+apiVersion: argocd-service.vsphere.vmware.com/v1alpha1
+kind: ManagedEntity
+metadata:
+  name: ns-system-1-ns-poc-1
+  namespace: system-1-argocd
+spec:
+  argoCDProject: vks-clusters
+  targetRef:
+    apiGroup: ""
+    kind: Namespace
+    name: system-1-ns-poc-1

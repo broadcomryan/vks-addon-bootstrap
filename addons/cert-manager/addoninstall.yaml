@@ -1,0 +1,13 @@
+apiVersion: addons.kubernetes.vmware.com/v1alpha1
+kind: AddonInstall
+metadata:
+  name: cert-manager                 # overlay prefixes it: <cluster>-cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"   # after the Cluster (wave 0) is Healthy
+spec:
+  addonRef:
+    name: cert-manager
+  clusters:
+  - selector:
+      matchLabels:
+        cluster.x-k8s.io/cluster-name: CLUSTER-NAME   # overlay replaces it

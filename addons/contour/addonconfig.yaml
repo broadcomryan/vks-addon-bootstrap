@@ -1,0 +1,15 @@
+# Contour settings. VKS uses the AddonConfig named <cluster>-contour for that cluster.
+apiVersion: addons.kubernetes.vmware.com/v1alpha1
+kind: AddonConfig
+metadata:
+  name: contour                      # overlay prefixes it: <cluster>-contour
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"   # settings exist before Contour is installed (wave 3)
+    clusteraddon.addons.kubernetes.vmware.com/owned-for-deletion: "true"
+spec:
+  clusterName: CLUSTER-NAME          # overlay replaces it
+  values:
+    envoy:
+      service:
+        type: LoadBalancer           # default is NodePort: not reachable from outside
+        loadBalancerIP: ""           # "" = next free IP from the pool; overlays set a static one

@@ -1,0 +1,83 @@
+# vks-clusters: one app per clusters/<vSphere Namespace>/<cluster>/ folder, applied on the Supervisor.
+# A folder with a kustomization.yaml is built with Kustomize; a folder of plain YAML is applied as-is.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vks-clusters
+  namespace: system-1-argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/broadcomryan/vks-bootstrap.git
+      revision: main
+      directories:
+      - path: clusters/*/*
+  template:
+    metadata:
+      name: '{{.path.basename}}'
+    spec:
+      project: vks-clusters
+      source:
+        repoURL: https://github.com/broadcomryan/vks-bootstrap.git
+        targetRevision: main
+        path: '{{.path.path}}'
+      destination:
+        name: '{{index .path.segments 1}}'
+        namespace: '{{index .path.segments 1}}'
+      syncPolicy:
+        automated:
+          prune: false              # Git never deletes a cluster or add-on
+          selfHeal: true
+        retry:
+          limit: 5
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 5m
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+---
+# guest-config: one app per guest-config/<vSphere Namespace>/<cluster>/ folder, applied INSIDE that
+# guest cluster. Waits (retrying) until the cluster is registered and Contour's CRDs exist.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guest-config
+  namespace: system-1-argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/broadcomryan/vks-bootstrap.git
+      revision: main
+      directories:
+      - path: guest-config/*/*
+  template:
+    metadata:
+      name: '{{.path.basename}}-config'
+    spec:
+      project: guest-config
+      source:
+        repoURL: https://github.com/broadcomryan/vks-bootstrap.git
+        targetRevision: main
+        path: '{{.path.path}}'
+      destination:
+        name: '{{.path.basename}}-{{index .path.segments 1}}'   # registered name: <cluster>-<namespace>
+        namespace: ingress-certs
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - SkipDryRunOnMissingResource=true   # TLSCertificateDelegation CRD appears once Contour is installed
+        retry:
+          limit: -1                          # keep retrying until Contour is there
+          backoff:
+            duration: 1m
+            factor: 2
+            maxDuration: 10m
+  syncPolicy:
+    preserveResourcesOnDeletion: true

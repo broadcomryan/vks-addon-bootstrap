@@ -1,0 +1,16 @@
+# Registers guest cluster wrkld-system-1-poc-1 with Argo CD, so guest-config can deploy INTO it.
+# Apply once the cluster is AVAILABLE:  kubectl apply -f setup/guest-clusters/wrkld-system-1-poc-1.yaml
+# Destination name in Argo CD: wrkld-system-1-poc-1-system-1-ns-poc-1
+# No argoCDProject on purpose: that would let every app of the project deploy anywhere on the
+# cluster. The guest-config project limits what goes there instead.
+apiVersion: argocd-service.vsphere.vmware.com/v1alpha1
+kind: ManagedEntity
+metadata:
+  name: vks-system-1-ns-poc-1-wrkld-system-1-poc-1
+  namespace: system-1-argocd
+spec:
+  targetRef:
+    apiGroup: cluster.x-k8s.io
+    kind: Cluster
+    name: wrkld-system-1-poc-1
+    namespace: system-1-ns-poc-1

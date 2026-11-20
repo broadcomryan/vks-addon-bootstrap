@@ -1,0 +1,11 @@
+# Everything Argo CD needs on the Supervisor. Applied by hand (never read from Git by Argo CD):
+#   kubectl apply -k setup/
+# Guest cluster registrations (setup/guest-clusters/) are applied separately, once each cluster is AVAILABLE.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- argocd-instance.yaml
+- namespaces/system-1-ns-poc-1.yaml
+- namespaces/system-1-ns-poc-2.yaml
+- projects.yaml
+- appsets.yaml

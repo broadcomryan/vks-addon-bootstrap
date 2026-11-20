@@ -1,0 +1,24 @@
+# The wildcard certificate lives in one namespace, ingress-certs, and Contour lets every
+# namespace's HTTPProxy use it. App teams never see or copy the private key.
+#
+# The Secret itself is NOT in Git (it holds the private key). Create it once, in the guest cluster:
+#   kubectl create secret tls wildcard-tls -n ingress-certs --cert=wildcard.crt --key=wildcard.key
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-certs
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: projectcontour.io/v1
+kind: TLSCertificateDelegation
+metadata:
+  name: wildcard-tls
+  namespace: ingress-certs
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  delegations:
+  - secretName: wildcard-tls
+    targetNamespaces:
+    - "*"                          # every namespace; list namespaces instead to restrict it

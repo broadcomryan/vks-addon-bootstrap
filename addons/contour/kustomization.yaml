@@ -1,0 +1,7 @@
+# BASE: Contour with Envoy exposed as a LoadBalancer service. Same for every cluster.
+# Each cluster's overlay sets: the cluster it targets, and (optionally) a static IP.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- addonconfig.yaml
+- addoninstall.yaml

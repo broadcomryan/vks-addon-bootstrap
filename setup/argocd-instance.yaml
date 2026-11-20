@@ -1,0 +1,10 @@
+# The Argo CD instance. Versions: kubectl get argocdversion argocd-supported-versions -o yaml
+apiVersion: argocd-service.vsphere.vmware.com/v1alpha1
+kind: ArgoCD
+metadata:
+  name: argocd
+  namespace: system-1-argocd          # ARGOCD_NS
+spec:
+  version: "3.5.3+vmware.1-vks.1"     # CHANGE-ME: a "Recommended" version from the list
+  applicationSet:
+    enabled: true

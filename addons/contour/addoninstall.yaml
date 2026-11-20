@@ -1,0 +1,13 @@
+apiVersion: addons.kubernetes.vmware.com/v1alpha1
+kind: AddonInstall
+metadata:
+  name: contour                      # overlay prefixes it: <cluster>-contour
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"   # after cert-manager (1) and Contour's settings (2)
+spec:
+  addonRef:
+    name: contour
+  clusters:
+  - selector:
+      matchLabels:
+        cluster.x-k8s.io/cluster-name: CLUSTER-NAME   # overlay replaces it

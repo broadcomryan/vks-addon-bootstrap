@@ -1,0 +1,14 @@
+# This cluster's Contour: Envoy gets this static IP. Point the wildcard DNS record (*.apps...) at it.
+# The IP must be free and come from your load balancer's pool (NSX ALB IPAM pool or NSX LB pool),
+# or with NSX in manual mode, from a floating IP pool outside that range.
+# Remove this file (and its line in kustomization.yaml) to get the next free IP instead.
+apiVersion: addons.kubernetes.vmware.com/v1alpha1
+kind: AddonConfig
+metadata:
+  name: contour
+spec:
+  clusterName: wrkld-system-1-poc-1
+  values:
+    envoy:
+      service:
+        loadBalancerIP: 10.0.0.50     # CHANGE-ME: the IP you reserved for this cluster's ingress

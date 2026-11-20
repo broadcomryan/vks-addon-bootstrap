@@ -1,0 +1,42 @@
+# vks-clusters: builds clusters and their VKS add-ons on the Supervisor.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: vks-clusters
+  namespace: system-1-argocd
+spec:
+  sourceRepos:
+  - https://github.com/broadcomryan/vks-bootstrap.git
+  destinations:                       # one entry per granted vSphere Namespace
+  - name: system-1-ns-poc-1
+    namespace: system-1-ns-poc-1
+  - name: system-1-ns-poc-2
+    namespace: system-1-ns-poc-2
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+  - group: cluster.x-k8s.io
+    kind: Cluster
+  - group: addons.kubernetes.vmware.com
+    kind: AddonInstall
+  - group: addons.kubernetes.vmware.com
+    kind: AddonConfig
+---
+# guest-config: platform settings INSIDE guest clusters. For now only the TLS certificate
+# delegation, in namespace ingress-certs. Nothing else, nowhere else.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: guest-config
+  namespace: system-1-argocd
+spec:
+  sourceRepos:
+  - https://github.com/broadcomryan/vks-bootstrap.git
+  destinations:                       # one entry per registered guest cluster: <cluster>-<vSphere Namespace>
+  - name: wrkld-system-1-poc-1-system-1-ns-poc-1
+    namespace: ingress-certs
+  clusterResourceWhitelist:
+  - group: ""
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: projectcontour.io
+    kind: TLSCertificateDelegation
